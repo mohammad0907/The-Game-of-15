@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+
+<html lang = "en">
+<head>
+  <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel = "stylesheet" href = "./stylesheet.css">
+    <link href="https://fonts.googleapis.com/css?family=Oswald&display=swap" rel="stylesheet">
+    <title>Game of 15</title>
+</head>
+  <body>
+
+
+      <div class = "mainContainer"> 
+        <h1>The Game of 15</h1>
+        <h2 id = "info"></h2>
+        <div class = "tableContainer">
+            <table id="myTable">
+                <tr>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                </tr>
+              </table>
+        </div>
+        
+        <br> 
+        <div class = "buttons">
+            <div onclick="randTable()">New game</div>
+            <div onclick="simpleGame()">Simple game</div>
+
+        </div>
+  
+        
+  
+        <br>
+        <p id = "counter">Steps Taken: 0</p>
+        <p id = "timer">Time spent: </p>
+
+    
+        
+      </div>
+      
+
+      <script>
+
+          window.addEventListener("load", randTable, false)
+          
+
+          let numbersArray = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,0,15] // array that will be scrambled
+          let twodArray = [[0,0,0,0], [0,0,0,0], [0,0,0,0], [0,0,0,0]]; // this array will be populated with the scrambled array
+          let solvedArray = [[1,2,3,4], [5,6,7,8], [9,10,11,12], [13,14,15,0]]; // array to check for winner
+          let stepCounter;
+          let empty = {
+            rowIndex : "",
+            columnIndex: ""
+
+          }
+          
+
+          let timer;
+          let totSeconds = 0;
+
+          // randomises table 
+          function randTable(){
+            document.getElementById("info").innerHTML = "";
+            clearInterval(timer)
+            stepCounter = 0;
+            stepCount();
+            totSeconds = 0;
+            timer = setInterval(timeCounter, 1000)
+            numbersArray.sort(() => Math.random() - 0.5); // randomises array 
+            let count = 0;
+            for (let i = 0; i < twodArray.length; i++){
+              for(let j = 0; j < twodArray.length; j++){
+                twodArray[i][j] = numbersArray[count];
+                count++
+              } 
+          }
+
+          generateTable(); 
+          }
+
+          // creats the simple game
+          function simpleGame() {
+            document.getElementById("info").innerHTML ="";
+            clearInterval(timer)
+            let simpleArray = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,0,15]
+            stepCounter = 0;
+            stepCount();
+            totSeconds = 0;
+            timer = setInterval(timeCounter, 1000)
+            let count = 0;
+            for (let i = 0; i < twodArray.length; i++){
+              for(let j = 0; j < twodArray.length; j++){
+                twodArray[i][j] = simpleArray[count];
+                count++
+              } 
+          }
+
+          generateTable();
+          }
+
+          // puts value on the gui. everytime this function is called checkWinner function is called 
+          function generateTable(){
+            
+          for(var i = 0; i < document.getElementById("myTable").rows.length; i++){
+            for( var j = 0; j < document.getElementById("myTable").rows[i].cells.length; j++){
+              if(twodArray[i][j] != 0){
+                document.getElementById("myTable").rows[i].cells[j].innerHTML = twodArray[i][j];
+              }else{
+                document.getElementById("myTable").rows[i].cells[j].innerHTML = "";
+                empty.rowIndex = i;
+                empty.columnIndex = j;
+              }
+              
+              }
+          }
+            checkWinner();
+            
+
+          }
+
+
+
+          // to get the index of an table cell
+          const table = document.querySelector('#myTable');
+          const rows = document.querySelectorAll('tr');
+          const rowsArray = Array.from(rows);
+          console.log(rows)
+
+          table.addEventListener('click', (event) => {
+            const rowIndex = rowsArray.findIndex(row => row.contains(event.target));
+            const columns = Array.from(rowsArray[rowIndex].querySelectorAll('td'));
+            const columnIndex = columns.findIndex(column => column == event.target);
+            console.log(rowIndex, columnIndex)
+            document.getElementById("info").innerHTML = "";
+            switchPosition(rowIndex, columnIndex)
+
+          })
+
+                  
+          // switches position if the clicked on adjacent cell 
+          function switchPosition(row, column){
+
+            // everytime postion is switched the genertate table and stepCount function is called
+            if((row === empty.rowIndex) && ((column - 1 === empty.columnIndex) ||(column + 1 === empty.columnIndex ) ) ){
+              twodArray[empty.rowIndex][empty.columnIndex] =  parseInt(document.getElementById("myTable").rows[row].cells[column].innerHTML)
+              twodArray[row][column] = 0;
+              stepCounter++;
+              stepCount()
+              generateTable();
+            }else if((column === empty.columnIndex) &&  ((row - 1 === empty.rowIndex) || (row + 1 == empty.rowIndex)) ){
+              twodArray[empty.rowIndex][empty.columnIndex] =  parseInt(document.getElementById("myTable").rows[row].cells[column].innerHTML)
+              twodArray[row][column] = 0;
+              stepCounter++;
+              stepCount();
+              generateTable();
+            }else{
+             
+              document.getElementById("info").innerHTML = "Cant switch. Tile not adjecent to the empty tile"
+            }
+          }
+          
+          // show step counter 
+          function stepCount(){
+            document.getElementById("counter").innerHTML = "Steps Taken: " + stepCounter
+          }
+          // checks for winner
+          function checkWinner(){
+            let winner = false;
+            for(let i = 0; i < solvedArray.length; i++){
+              if(solvedArray[i].toString() === twodArray[i].toString()){
+                winner = true;
+              }else {
+                winner = false;
+                break;
+              }
+
+            }
+
+            if (winner){
+             
+              clearInterval(timer)
+              document.getElementById("info").innerHTML = "Winner"
+              if(window.confirm("Winner! Do you want to play again")){
+                randTable();
+              }
+            }
+          }
+
+          function timeCounter(){
+              totSeconds++
+              let hour = Math.floor(totSeconds /3600);
+              let minute = Math.floor((totSeconds - hour*3600)/60);
+              let seconds = totSeconds - (hour*3600 + minute*60);
+
+              document.getElementById("timer").innerHTML = "Time Spent:  " +  hour + ":" + minute + ":" + seconds;
+          }
+
+
+
+
+      </script>
+
+  </body>
+</html>
